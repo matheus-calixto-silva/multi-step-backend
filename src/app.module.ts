@@ -6,6 +6,7 @@ import { RegistrationModule } from './registration/registration.module';
 import { CepModule } from './providers/cep/cep.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CreateRegistration1775114576538 } from './migrations/1775114576538-CreateRegistration';
 
 @Module({
   imports: [
@@ -24,7 +25,9 @@ import { ScheduleModule } from '@nestjs/schedule';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
-        synchronize: true, // ⚠️ Trocar para false + migration antes da entrega
+        synchronize: false,
+        migrationsRun: true,
+        migrations: [CreateRegistration1775114576538],
       }),
     }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 30 }]),
