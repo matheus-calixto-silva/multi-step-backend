@@ -1,99 +1,237 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Predictus — Backend de Cadastro
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST de onboarding multi-step com verificação por e-mail (MFA), desenvolvida como teste técnico para a Predictus.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Stack
 
-## Description
+- **NestJS 10** · **TypeORM 0.3** · **PostgreSQL 16**
+- **pnpm** · **Node 20+**
+- **Resend** (envio de e-mails) · **ViaCEP** (consulta de endereço)
+- **Swagger** (documentação automática em `/api`) · **Throttler** (rate limiting)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## Rodando com Docker (recomendado)
+
+> Sobe PostgreSQL + backend com um único comando. O frontend está em repositório separado.
 
 ```bash
-$ pnpm install
+# 1. Copiar variáveis de ambiente
+cp .env.sample .env
+
+# 2. Preencher obrigatoriamente no .env:
+#    RESEND_API_KEY=<sua chave>
+#
+# As variáveis de banco já vêm pré-configuradas no .env.sample
+# com os valores usados pelo docker-compose.
+# Se o frontend rodar em outra porta/origem, ajuste também CORS_ORIGIN e FRONTEND_URL.
+
+# 3. Subir todos os serviços
+docker-compose up --build
 ```
 
-## Compile and run the project
+| Serviço | URL |
+|---------|-----|
+| Backend (API) | http://localhost:3001 |
+| Swagger | http://localhost:3001/api |
+
+> As migrações do banco rodam automaticamente na inicialização do backend.
+
+---
+
+## Rodando localmente (sem Docker)
 
 ```bash
-# development
-$ pnpm run start
+# 1. Instalar dependências
+pnpm install
 
-# watch mode
-$ pnpm run start:dev
+# 2. Configurar variáveis de ambiente
+cp .env.sample .env
+# Edite o .env
 
-# production mode
-$ pnpm run start:prod
+# 3. Subir apenas o banco de dados
+docker-compose up -d postgres
+
+# 4. Iniciar em modo de desenvolvimento
+pnpm run start:dev
 ```
 
-## Run tests
+A API estará disponível em `http://localhost:3001`.
+
+---
+
+## Variáveis de ambiente
+
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `PORT` | Porta em que a API escuta | `3001` |
+| `DB_HOST` | Host do PostgreSQL | — |
+| `DB_PORT` | Porta do PostgreSQL | `5432` |
+| `DB_USERNAME` | Usuário do banco | — |
+| `DB_PASSWORD` | Senha do banco | — |
+| `DB_NAME` | Nome do banco | — |
+| `RESEND_API_KEY` | Chave de API do Resend (**obrigatório**) | — |
+| `CORS_ORIGIN` | Origem permitida pelo CORS | `http://localhost:3000` |
+| `EMAIL_FROM` | Remetente dos e-mails (**obrigatório** para entregas a múltiplos destinatários) | `onboarding@resend.dev` |
+| `FRONTEND_URL` | URL base do frontend (usado nos links dos e-mails) | `http://localhost:3000` |
+
+> **Resend — plano gratuito:** o domínio `onboarding@resend.dev` só entrega para e-mails verificados no dashboard do Resend, impedindo o envio para destinatários arbitrários. Para que qualquer endereço possa receber os e-mails, **verifique um domínio próprio** no painel do Resend e defina `EMAIL_FROM` com um endereço desse domínio (ex: `no-reply@seudominio.com`).
+
+---
+
+## Testes
 
 ```bash
-# unit tests
-$ pnpm run test
+# Unitários
+pnpm run test
 
-# e2e tests
-$ pnpm run test:e2e
+# Com cobertura
+pnpm run test:cov
 
-# test coverage
-$ pnpm run test:cov
+# End-to-end (requer banco em execução)
+pnpm run test:e2e
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Endpoints da API
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Cadastro (`/registrations`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/registrations` | Cria cadastro e retorna `{ id }` |
+| `GET` | `/registrations/:id` | Busca cadastro por ID |
+| `GET` | `/registrations/recover?email=` | Retoma cadastro em andamento pelo e-mail |
+| `PATCH` | `/registrations/:id/steps/:step` | Avança ou edita um step |
+| `POST` | `/registrations/:id/verify-mfa` | Verifica código MFA de 6 dígitos |
+| `POST` | `/registrations/:id/resend-mfa` | Reenvia código MFA por e-mail |
+| `POST` | `/registrations/:id/complete` | Conclui o cadastro |
+
+### CEP
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/cep/:cep` | Consulta endereço pelo CEP via ViaCEP |
+
+### Body por step (`PATCH /registrations/:id/steps/:step`)
+
+| Step | Campos obrigatórios | Campos opcionais |
+|------|---------------------|------------------|
+| `IDENTIFICATION` | `name` (mín. 3 chars), `email` | — |
+| `DOCUMENT` | `documentType` (`CPF` ou `CNPJ`), `document` (só dígitos) | — |
+| `CONTACT` | `phone` (DDD + 9 dígitos, ex: `11912345678`) | — |
+| `ADDRESS` | `cep` (8 dígitos), `street`, `number`, `neighborhood`, `city`, `state` (UF) | `complement` |
+| `REVIEW` | — (sem body, apenas retorna o cadastro) | — |
+
+> **Edição na revisão:** quando `currentStep` é `REVIEW`, é possível enviar `PATCH` para qualquer step anterior. O backend atualiza o campo e mantém `currentStep` em `REVIEW`, retornando o usuário direto à tela de revisão.
+
+---
+
+## Fluxo de cadastro
+
+```
+POST /registrations
+       │
+       ▼
+  IDENTIFICATION  ──── envia MFA por e-mail
+       │
+       ▼
+  POST /verify-mfa  (obrigatório antes de continuar)
+       │
+       ▼
+    DOCUMENT  →  CONTACT  →  ADDRESS  →  REVIEW
+                                               │
+                                               ▼
+                                       POST /complete
+                                               │
+                                               ▼
+                                          COMPLETED
+```
+
+**Regras:**
+- Não é permitido pular steps — o `step` enviado deve ser o `currentStep` atual, exceto durante revisão (ver acima)
+- A partir de `DOCUMENT`, o MFA deve estar verificado (`mfaVerifiedAt != null`), senão `403`
+- `REVIEW` não recebe dados nem avança step — só `POST /complete` avança para `COMPLETED`
+- Ao concluir, `completedAt` é preenchido automaticamente
+
+---
+
+## Fluxo MFA
+
+1. Ao concluir `IDENTIFICATION`, um código de **6 dígitos** é enviado ao e-mail informado
+2. O código expira em **10 minutos**
+3. Verificar: `POST /verify-mfa` com `{ "code": "123456" }`
+4. Reenviar (se necessário): `POST /resend-mfa` — limite de 3 req/60s
+
+---
+
+## Arquitetura
+
+```
+src/
+├── common/validators/       # CPF e CNPJ (algoritmo dos dígitos verificadores, sem lib)
+├── migrations/              # Migration inicial do schema
+├── providers/
+│   ├── cep/                 # Interface CepProvider + ViaCepProvider
+│   └── email/               # Interface EmailProvider + ResendEmailProvider
+├── registration/
+│   ├── dto/                 # DTOs de cada step com class-validator
+│   ├── entities/            # Entidade Registration + enums
+│   ├── mfa/                 # MfaService (geração, hash SHA-256, verificação)
+│   ├── tasks/               # AbandonmentTask (cron a cada hora)
+│   ├── registration.controller.ts
+│   ├── registration.service.ts
+│   └── registration.module.ts
+├── app.module.ts
+└── main.ts
+```
+
+### Por que Provider Pattern?
+
+Toda integração externa (e-mail, CEP) usa interface + token de injeção NestJS. Para trocar de fornecedor, basta criar uma nova classe implementando a interface e alterar o `useClass` no módulo — nenhuma regra de negócio muda.
+
+**Trocar ViaCEP por outro serviço de CEP:**
+
+```ts
+// src/providers/cep/cep.module.ts
+{ provide: CEP_PROVIDER, useClass: MeuNovoProviderCep }
+// A nova classe implementa: lookup(cep: string): Promise<CepResponse | null>
+```
+
+**Trocar Resend por SendGrid:**
+
+```ts
+// src/providers/email/email.module.ts
+{ provide: EMAIL_PROVIDER, useClass: SendGridEmailProvider }
+// A nova classe implementa: send(to, subject, html): Promise<void>
+```
+
+### Cron de abandono
+
+`AbandonmentTask` executa a cada hora. Envia e-mail de retomada com link `?id=<id>` para cadastros que:
+- Não foram concluídos
+- Não tiveram atualização há mais de 1 hora
+- Ainda não receberam o e-mail de abandono
+- Possuem e-mail cadastrado
+
+### Migrations
+
+O projeto usa TypeORM migrations (não `synchronize`). As migrations rodam automaticamente na inicialização via `migrationsRun: true`.
+
+Para gerar nova migration após alterar a entidade:
 
 ```bash
-$ pnpm install -g mau
-$ mau deploy
+pnpm migration:generate src/migrations/NomeDaMigration
+pnpm migration:run
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## Rate Limiting
 
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+| Rota | Limite |
+|------|--------|
+| Global | 30 req / 60s |
+| `POST /verify-mfa` | 5 req / 60s |
+| `POST /resend-mfa` | 3 req / 60s |
