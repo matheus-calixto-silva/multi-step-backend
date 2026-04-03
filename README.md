@@ -13,7 +13,7 @@ API REST de onboarding multi-step com verificação por e-mail (MFA), desenvolvi
 
 ## Rodando com Docker (recomendado)
 
-> Sobe PostgreSQL + backend com um único comando. O frontend está em repositório separado.
+> Sobe PostgreSQL + backend com um único comando. O frontend está em repositório separado: https://github.com/matheus-calixto-silva/multi-step-frontend. Para rodar a aplicação completa, siga o README do frontend após subir este backend.
 
 ```bash
 # 1. Copiar variáveis de ambiente
