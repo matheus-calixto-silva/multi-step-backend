@@ -46,7 +46,7 @@
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@nestjs/cli": "^10.0.0",
-    "@nestjs/schematics": "^10.0.0",
+    "@nestjs/schematics": "^11.0.10",
     "@nestjs/testing": "^10.0.0",
     "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.0",
