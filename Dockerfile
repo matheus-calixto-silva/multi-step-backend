@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:25-alpine AS base
 RUN corepack enable && corepack prepare pnpm@9 --activate
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY package.json pnpm-lock.yaml ./
 COPY .husky/install.mjs ./.husky/install.mjs
 RUN pnpm install --prod --frozen-lockfile
 
-FROM node:20-alpine AS runner
+FROM node:25-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /app/dist ./dist
